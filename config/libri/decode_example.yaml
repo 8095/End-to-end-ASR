@@ -5,9 +5,9 @@ src:
 data:
   corpus:
     name:  'Librispeech'
-    dev_split: ['validset_clean']
+    dev_split: ['dev-clean']
     #    test_split: ['gen_test_flac']
-    test_split: ['testset_clean']
+    test_split: ['test-noisy'] #用libri的带噪测试集进行评估
 decode:
   beam_size: 20
   min_len_ratio: 0.01

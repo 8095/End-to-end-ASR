@@ -1,9 +1,9 @@
 data:
   corpus:
     name: 'Librispeech'                   # Specify corpus
-    path: '/data01/AuFast/Pan_dataset/SE_asr/test2/se_fbank'          # Path to raw LibriSpeech dataset
+    path: '/data01/AuFast/Pan_dataset/SE_asr/test1/LibriSpeech'          # Path to raw LibriSpeech dataset
     train_split: ['train-clean-100'] # Name of data splits to be used as training set
-    dev_split: ['validset_clean']              # Name of data splits to be used as validation set
+    dev_split: ['dev-clean']              # Name of data splits to be used as validation set
     bucketing: True                       # Enable/Disable bucketing 
     batch_size: 64
   audio:                                  # Attributes of audio feature
