@@ -6,7 +6,7 @@ data:
     train_split: ['librispeech-lm-norm.txt'] # Official LM src from LibriSpeech
     dev_split: ['dev-clean']
     bucketing: True
-    batch_size: 32
+    batch_size: 64
   text:
     mode: 'subword'                     # 'character'/'word'/'subword'
     vocab_file: 'tests/sample_data/subword-16k.model'

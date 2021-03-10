@@ -1,3 +1,5 @@
+import os
+import scipy.io as scio
 import torch
 from functools import partial
 from src.text import load_text_encoder
@@ -21,20 +23,36 @@ def collect_audio_batch(batch, audio_transform, mode):
     # Make sure that batch size is reasonable
     first_len = audio_transform(str(batch[0][0])).shape[0]
     if first_len > HALF_BATCHSIZE_AUDIO_LEN and mode == 'train':
-        batch = batch[:len(batch)//2]
+        batch = batch[:len(batch) // 2]
 
     # Read batch
     file, audio_feat, audio_len, text = [], [], [], []
     with torch.no_grad():
         for b in batch:
             file.append(str(b[0]).split('/')[-1].split('.')[0])
-            feat = audio_transform(str(b[0]))
+            # feat = audio_transform(str(b[0]))
+            # mat~~
+            now = str(b[0]).split('/', 9)[6]
+            name = str(b[0]).split('/')[-1].split('.')[0]
+            if now == 'train-clean-100':
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/train_mat/"
+            elif now == 'dev-clean':
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/valid_mat/"
+            elif now == 'test-clean':
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/test_mat/"
+            mat_path = path + name + '.mat'
+            if os.path.exists(mat_path):
+                data_mat = scio.loadmat(mat_path)['feat']
+                feat = torch.from_numpy(data_mat)
+
             audio_feat.append(feat)
             audio_len.append(len(feat))
             text.append(torch.LongTensor(b[1]))
     # Descending audio length within each batch
     audio_len, file, audio_feat, text = zip(*[(feat_len, f_name, feat, txt)
-                                              for feat_len, f_name, feat, txt in sorted(zip(audio_len, file, audio_feat, text), reverse=True, key=lambda x:x[0])])
+                                              for feat_len, f_name, feat, txt in
+                                              sorted(zip(audio_len, file, audio_feat, text), reverse=True,
+                                                     key=lambda x: x[0])])
     # Zero-padding
     audio_feat = pad_sequence(audio_feat, batch_first=True)
     text = pad_sequence(text, batch_first=True)
@@ -52,7 +70,7 @@ def collect_text_batch(batch, mode):
         batch = batch[0]
     # Half batch size if input to long
     if len(batch[0]) > HALF_BATCHSIZE_TEXT_LEN and mode == 'train':
-        batch = batch[:len(batch)//2]
+        batch = batch[:len(batch) // 2]
     # Read batch
     text = [torch.LongTensor(b) for b in batch]
     # Zero-padding
@@ -157,7 +175,6 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
 
 
 def load_textset(n_jobs, use_gpu, pin_memory, corpus, text):
-
     # Text tokenizer
     tokenizer = load_text_encoder(**text)
     # Dataset

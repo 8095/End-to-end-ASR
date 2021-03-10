@@ -211,16 +211,16 @@ class Solver(BaseSolver):
 
 def beam_decode(data, model, device, job):
     # Fetch data : move data/model to device
-    if job == 'test':
-        name, feat, feat_len, txt = data
-        path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/test_mat/"
-        mat_path = path + name[0] + '.mat'
-        if os.path.exists(mat_path):
-            data_mat = scio.loadmat(mat_path)['feat']
-            feat = torch.from_numpy(data_mat).unsqueeze(0).detach()
-    elif job == 'dev':
-        name, feat, feat_len, txt = data
-    # name, feat, feat_len, txt = data
+    # if job == 'test':
+    #     name, feat, feat_len, txt = data
+    #     path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/test_mat/"
+    #     mat_path = path + name[0] + '.mat'
+    #     if os.path.exists(mat_path):
+    #         data_mat = scio.loadmat(mat_path)['feat']
+    #         feat = torch.from_numpy(data_mat).unsqueeze(0).detach()
+    # elif job == 'dev':
+    #     name, feat, feat_len, txt = data
+    name, feat, feat_len, txt = data
     feat = feat.to(device)
     feat_len = feat_len.to(device)
     txt = txt.to(device)

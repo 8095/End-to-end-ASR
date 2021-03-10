@@ -22,13 +22,6 @@ class Solver(BaseSolver):
     def fetch_data(self, data):
         ''' Move data to device and compute text seq. length'''
         name, feat, feat_len, txt = data
-        # path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/train_mat/"
-        # for i in range(feat_len):
-        #     mat_path = path + name[i] + '.mat'
-        #     if os.path.exists(mat_path):
-        #         data_mat = scio.loadmat(mat_path)['feat']
-        #         feat = torch.from_numpy(data_mat).unsqueeze(0).detach()
-
         feat = feat.to(self.device)
         feat_len = feat_len.to(self.device)
         txt = txt.to(self.device)
