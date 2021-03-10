@@ -5,6 +5,8 @@ from src.asr import ASR
 from src.optim import Optimizer
 from src.data import load_dataset
 from src.util import human_format, cal_er, feat_to_fig
+import scipy.io as scio
+import os
 
 
 class Solver(BaseSolver):
@@ -19,7 +21,14 @@ class Solver(BaseSolver):
 
     def fetch_data(self, data):
         ''' Move data to device and compute text seq. length'''
-        _, feat, feat_len, txt = data
+        name, feat, feat_len, txt = data
+        # path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/train_mat/"
+        # for i in range(feat_len):
+        #     mat_path = path + name[i] + '.mat'
+        #     if os.path.exists(mat_path):
+        #         data_mat = scio.loadmat(mat_path)['feat']
+        #         feat = torch.from_numpy(data_mat).unsqueeze(0).detach()
+
         feat = feat.to(self.device)
         feat_len = feat_len.to(self.device)
         txt = txt.to(self.device)
@@ -39,7 +48,7 @@ class Solver(BaseSolver):
         # Model
         init_adadelta = self.config['hparas']['optimizer'] == 'Adadelta'
         self.model = ASR(self.feat_dim, self.vocab_size, init_adadelta, **
-                         self.config['model']).to(self.device)
+        self.config['model']).to(self.device)
         self.verbose(self.model.create_msg())
         model_paras = [{'params': self.model.parameters()}]
 
@@ -109,7 +118,7 @@ class Solver(BaseSolver):
                 if self.emb_reg:
                     emb_loss, fuse_output = self.emb_decoder(
                         dec_state, att_output, label=txt)
-                    total_loss += self.emb_decoder.weight*emb_loss
+                    total_loss += self.emb_decoder.weight * emb_loss
 
                 # Compute all objectives
                 if ctc_output is not None:
@@ -117,19 +126,19 @@ class Solver(BaseSolver):
                         ctc_loss = self.ctc_loss(ctc_output.transpose(0, 1),
                                                  txt.to_sparse().values().to(device='cpu', dtype=torch.int32),
                                                  [ctc_output.shape[1]] *
-                                                  len(ctc_output),
+                                                 len(ctc_output),
                                                  txt_len.cpu().tolist())
                     else:
                         ctc_loss = self.ctc_loss(ctc_output.transpose(
                             0, 1), txt, encode_len, txt_len)
-                    total_loss += ctc_loss*self.model.ctc_weight
+                    total_loss += ctc_loss * self.model.ctc_weight
 
                 if att_output is not None:
                     b, t, _ = att_output.shape
                     att_output = fuse_output if self.emb_fuse else att_output
                     att_loss = self.seq_loss(
-                        att_output.view(b*t, -1), txt.view(-1))
-                    total_loss += att_loss*(1-self.model.ctc_weight)
+                        att_output.view(b * t, -1), txt.view(-1))
+                    total_loss += att_loss * (1 - self.model.ctc_weight)
 
                 self.timer.cnt('fw')
 
@@ -149,7 +158,7 @@ class Solver(BaseSolver):
                     if self.emb_fuse:
                         if self.emb_decoder.fuse_learnable:
                             self.write_log('fuse_lambda', {
-                                           'emb': self.emb_decoder.get_weight()})
+                                'emb': self.emb_decoder.get_weight()})
                         self.write_log(
                             'fuse_temp', {'temp': self.emb_decoder.get_temp()})
 
@@ -174,21 +183,21 @@ class Solver(BaseSolver):
         dev_wer = {'att': [], 'ctc': []}
 
         for i, data in enumerate(self.dv_set):
-            self.progress('Valid step - {}/{}'.format(i+1, len(self.dv_set)))
+            self.progress('Valid step - {}/{}'.format(i + 1, len(self.dv_set)))
             # Fetch data
             feat, feat_len, txt, txt_len = self.fetch_data(data)
 
             # Forward model
             with torch.no_grad():
                 ctc_output, encode_len, att_output, att_align, dec_state = \
-                    self.model(feat, feat_len, int(max(txt_len)*self.DEV_STEP_RATIO),
+                    self.model(feat, feat_len, int(max(txt_len) * self.DEV_STEP_RATIO),
                                emb_decoder=self.emb_decoder)
 
             dev_wer['att'].append(cal_er(self.tokenizer, att_output, txt))
             dev_wer['ctc'].append(cal_er(self.tokenizer, ctc_output, txt, ctc=True))
 
             # Show some example on tensorboard
-            if i == len(self.dv_set)//2:
+            if i == len(self.dv_set) // 2:
                 for i in range(min(len(txt), self.DEV_N_EXAMPLE)):
                     if self.step == 1:
                         self.write_log('true_text{}'.format(
@@ -199,16 +208,17 @@ class Solver(BaseSolver):
                         self.write_log('att_text{}'.format(i), self.tokenizer.decode(
                             att_output[i].argmax(dim=-1).tolist()))
                     if ctc_output is not None:
-                        self.write_log('ctc_text{}'.format(i), self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(),
-                                                                                     ignore_repeat=True))
+                        self.write_log('ctc_text{}'.format(i),
+                                       self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(),
+                                                             ignore_repeat=True))
 
         # Ckpt if performance improves
         for task in ['att', 'ctc']:
-            dev_wer[task] = sum(dev_wer[task])/len(dev_wer[task])
+            dev_wer[task] = sum(dev_wer[task]) / len(dev_wer[task])
             if dev_wer[task] < self.best_wer[task]:
                 self.best_wer[task] = dev_wer[task]
                 self.save_checkpoint('best_{}.pth'.format(task), 'wer', dev_wer[task])
-            self.write_log('wer', {'dv_'+task: dev_wer[task]})
+            self.write_log('wer', {'dv_' + task: dev_wer[task]})
         self.save_checkpoint('latest.pth', 'wer', dev_wer['att'], show_msg=False)
 
         # Resume training
