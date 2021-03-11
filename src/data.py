@@ -35,11 +35,11 @@ def collect_audio_batch(batch, audio_transform, mode):
             now = str(b[0]).split('/', 9)[6]
             name = str(b[0]).split('/')[-1].split('.')[0]
             if now == 'train-clean-100':
-                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/train_mat/"
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat_batch/train_mat/"
             elif now == 'dev-clean':
-                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/valid_mat/"
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat_batch/valid_mat/"
             elif now == 'test-clean':
-                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat/test_mat/"
+                path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/gen_mat_batch/test_mat/"
             mat_path = path + name + '.mat'
             if os.path.exists(mat_path):
                 data_mat = scio.loadmat(mat_path)['feat']
