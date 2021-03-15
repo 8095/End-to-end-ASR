@@ -28,7 +28,7 @@ parser.add_argument('--seed', default=0, type=int,
                     help='Random seed for reproducable results.', required=False)
 parser.add_argument('--cudnn-ctc', action='store_true',
                     help='Switches CTC backend from torch to cudnn')
-parser.add_argument('--njobs', default=8, type=int,
+parser.add_argument('--njobs', default=16, type=int,
                     help='Number of threads for dataloader/decoding.', required=False)
 parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 parser.add_argument('--no-pin', action='store_true',
@@ -74,6 +74,7 @@ else:
         mode = 'test'
     else:
         # Train ASR
+        # assert paras.load is None, 'Load option is mutually exclusive to --train'
         from bin.train_asr import Solver
 
         mode = 'train'

@@ -71,6 +71,8 @@ class Solver(BaseSolver):
         # Enable AMP if needed
         self.enable_apex()
 
+        self.paras.load = 'ckpt/asr_example_sd0/best_att.pth'
+
         # Automatically load pre-trained model if self.paras.load is given
         self.load_ckpt()
 

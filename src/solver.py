@@ -60,6 +60,8 @@ class BaseSolver():
             self.verbose('Exp. name : {}'.format(self.exp_name))
             self.verbose('Loading data... large corpus may took a while.')
 
+
+
         elif mode == 'test':
             # Output path
             os.makedirs(paras.outdir, exist_ok=True)
@@ -84,7 +86,7 @@ class BaseSolver():
         grad_norm = torch.nn.utils.clip_grad_norm_(
             self.model.parameters(), self.GRAD_CLIP)
         if math.isnan(grad_norm):
-            self.verbose('Error : grad norm is NaN @ step '+str(self.step))
+            self.verbose('Error : grad norm is NaN @ step ' + str(self.step))
         else:
             self.optimizer.step()
         self.timer.cnt('bw')
@@ -92,6 +94,7 @@ class BaseSolver():
 
     def load_ckpt(self):
         ''' Load ckpt if --load option is specified '''
+
         if self.paras.load:
             # Load weights
             ckpt = torch.load(
@@ -111,7 +114,7 @@ class BaseSolver():
                 self.step = ckpt['global_step']
                 self.optimizer.load_opt_state_dict(ckpt['optimizer'])
                 self.verbose('Load ckpt from {}, restarting at step {} (recorded {} = {:.2f} %)'.format(
-                              self.paras.load, self.step, metric, score))
+                    self.paras.load, self.step, metric, score))
             else:
                 self.model.eval()
                 if self.emb_decoder is not None:
@@ -141,7 +144,7 @@ class BaseSolver():
         '''
         if type(log_dict) is dict:
             log_dict = {key: val for key, val in log_dict.items() if (
-                val is not None and not math.isnan(val))}
+                    val is not None and not math.isnan(val))}
         if log_dict is None:
             pass
         elif len(log_dict) > 0:
